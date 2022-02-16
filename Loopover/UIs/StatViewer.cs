@@ -93,6 +93,7 @@ namespace Loopover.UIs
         {
             Console.ResetColor();
             Console.Clear();
+            SelectNew();
             DrawFrame();
             DrawElements();
             DrawContent();
@@ -106,6 +107,8 @@ namespace Loopover.UIs
 
         public ResultMessage PlayScramble()
         {
+            if (Stats.Count == 0)
+                return ResultMessage.None;
             Game3 g3 = new(new(), Blocks, Redraw, () => Blocks.SetTemplateDraw(Selection.scramble, Selection.startX, Selection.startY), true, false,
                 "[Enter]Scramble [Backspace]Pause/Resume [R]Reload [S]Save [Esc]Back [Arrows]Move [Ctrl]Rotate");
             var ret = g3.Play();
@@ -125,9 +128,10 @@ namespace Loopover.UIs
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.White;
             Console.SetCursorPosition(RightTextStart - 2, TopLengthStart - 1);
-            int bar = (TextHeight + 1) * Position / Stats.Count;
+            int bar = Stats.Count == 0 ? 0 : (TextHeight + 1) * Position / Stats.Count;
             for (int i = 0; i < (TextHeight + 1); i++)
-            {if (i == bar)
+            {
+                if (i == bar)
                     Console.Write('█');
                 else
                     Console.Write('│');
@@ -138,6 +142,8 @@ namespace Loopover.UIs
 
         public void DrawContent()
         {
+            if (Stats.Count == 0)
+                return;
             CWriter.ResetColored(ConsoleColor.White, $"ID:    ", RightTextStart, TopLengthStart - 1);
             CWriter.Colored(ConsoleColor.DarkMagenta, $"{Stats.Count - Selected}       ");
             CWriter.Colored(ConsoleColor.White, $"Time:  ", RightTextStart, TopLengthStart);
@@ -154,15 +160,21 @@ namespace Loopover.UIs
 
         public void Move(bool forward)
         {
+            if (Stats.Count == 0)
+                return;
             (Direction Direction, bool Rotate) = MoveReplay[MoveReplay.Position];
             if (forward && MoveReplay.Move(1))
+            {
                 Blocks.Play(MoveReplay[MoveReplay.Position].Rotate, MoveReplay[MoveReplay.Position].Direction);
+            }
             else if (!forward && MoveReplay.Move(-1) && (Direction != Direction.None))
                 Blocks.Play(Rotate, Usefuls.Convert.Reverse(Direction));
         }
 
         public void ResetMoves()
         {
+            if (Stats.Count == 0)
+                return;
             MoveReplay.Reset();
             Blocks.SetTemplateDraw(Selection.scramble, Selection.startX, Selection.startY);
         }
@@ -193,6 +205,8 @@ namespace Loopover.UIs
 
         public void SelectNew()
         {
+            if (Stats.Count == 0)
+                return;
             Blocks.SetTemplateDraw(Selection.scramble, Selection.startX, Selection.startY);
             Blocks.DrawAll();
             MoveReplay = new(Selection.moves, this);
@@ -202,7 +216,7 @@ namespace Loopover.UIs
         {
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            for (int i = Position; (i < (Position + TextHeight)) && (i < Stats.Count); i++)
+            for (int i = Position; (i < (Position + TextHeight)) && (i < Stats.Count) && (i >= 0); i++)
             {
                 if (i == Selected)
                     Console.ForegroundColor = ConsoleColor.Green;

@@ -55,11 +55,18 @@ namespace Loopover.Templates
                         StatViewer.Bottom();
                         Status.Write("Moved to end");
                         break;
-                    case ConsoleKey.Add:
+                    case ConsoleKey.Add or ConsoleKey.OemPlus:
                         StatViewer.Move(true);
                         Status.Write("Played next move");
                         break;
-                    case ConsoleKey.Subtract:
+                    case ConsoleKey.D1: // I don't know why but this is what my Numpad Plus key returns
+                        if (cki.KeyChar == '+')
+                        {
+                            StatViewer.Move(true);
+                            Status.Write("Played next move");
+                        }
+                        break;
+                    case ConsoleKey.Subtract or ConsoleKey.OemMinus:
                         StatViewer.Move(false);
                         Status.Write("Played previous move");
                         break;
@@ -80,6 +87,9 @@ namespace Loopover.Templates
                         break;
                     case ConsoleKey.Tab:
                         return ResultMessage.Next;
+                    /*default:
+                        Status.Write(cki.Key);
+                        break;*/
                 }
             }
             return ResultMessage.Exit;
