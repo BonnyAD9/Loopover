@@ -2,7 +2,7 @@
 Remake of Carkh's loopover for console in C# .NET Core
 
 Application saves statistics inside a json file<br>
-On widows: `%appdata%\Loopover\save.json`<br>
+On widows: `%appdata%/Loopover/save.json`<br>
 On linux should be: `home/.config/Loopover/save.json`
 
 Times made while trying scramble aren't saved
