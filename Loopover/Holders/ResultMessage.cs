@@ -1,10 +1,9 @@
-﻿namespace Loopover.Holders
+﻿namespace Loopover.Holders;
+
+enum ResultMessage
 {
-    enum ResultMessage
-    {
-        Exit,
-        Next,
-        Error,
-        None
-    }
+    Exit,
+    Next,
+    Error,
+    None
 }
