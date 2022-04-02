@@ -1,5 +1,5 @@
 # Loopover
-Remake of Carkh's loopover for console in C# .NET Core
+Remake of Carkyh's loopover for console in C# .NET Core
 
 Application saves statistics inside a json file<br>
 On widows: `%appdata%/Loopover/save.json`<br>
