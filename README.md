@@ -41,7 +41,7 @@ Same as in game
 
 ## Color scheme
 Recommended color scheme for Windows Terminal:
-```
+```json
 {
     "background": "#0C0C0C",
     "black": "#0C0C0C",
