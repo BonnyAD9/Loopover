@@ -3,6 +3,7 @@ using System;
 using System.Text;
 using Loopover.Usefuls;
 using Loopover.Templates;
+using Bny.Console;
 
 namespace Loopover.UIs;
 
@@ -68,8 +69,10 @@ class StatViewer
     public int OffsetX { get; private set; } = 0;
     public int OffsetY { get; private set; } = 0;
 
-    public static int CenteredX => (Console.WindowWidth / 2) - (width / 2);
-    public static int CenteredY => (Console.WindowHeight / 2) - (height / 2);
+    public static (int x, int y) Centered((int width, int height) size)
+    {
+        return ((size.width / 2) - (width / 2), (size.height / 2) - (height / 2));
+    }
 
     private Stats Stats { get; set; }
 
@@ -82,7 +85,7 @@ class StatViewer
 
     public void CenterSetup()
     {
-        Console.CursorVisible = false;
+        Term.IsCursorVisible = false;
         Center();
         Blocks.Reoffset(RightTextStart, TopLengthStart + 8);
         DrawAll();
@@ -91,19 +94,15 @@ class StatViewer
 
     public void DrawAll()
     {
-        Console.ResetColor();
-        Console.Clear();
+        Term.ResetColor();
+        Term.Erase();
         SelectNew();
         DrawFrame();
         DrawElements();
         DrawContent();
     }
 
-    private void Center()
-    {
-        OffsetX = CenteredX;
-        OffsetY = CenteredY;
-    }
+    private void Center() => (OffsetX, OffsetY) = Centered(Term.GetWindowSize());
 
     public ResultMessage PlayScramble()
     {
@@ -125,36 +124,38 @@ class StatViewer
 
     public void DrawLine()
     {
-        Console.ResetColor();
-        Console.ForegroundColor = ConsoleColor.White;
-        Console.SetCursorPosition(RightTextStart - 2, TopLengthStart - 1);
+        var sb = Term.PrepareSB(Term.reset, Term.move, RightTextStart - 2, TopLengthStart - 1);
         int bar = Stats.Count == 0 ? 0 : (TextHeight + 1) * Position / Stats.Count;
         for (int i = 0; i < (TextHeight + 1); i++)
         {
             if (i == bar)
-                Console.Write('█');
+                sb.Append('█');
             else
-                Console.Write('│');
-            Console.CursorLeft--;
-            Console.CursorTop++;
+                sb.Append('│');
+
+            sb.Append(Term.left1).Append(Term.down1);
         }
+
+        Console.Write(sb.ToString());
     }
 
     public void DrawContent()
     {
         if (Stats.Count == 0)
             return;
-        CWriter.ResetColored(ConsoleColor.White, $"ID:    ", RightTextStart, TopLengthStart - 1);
-        CWriter.Colored(ConsoleColor.DarkMagenta, $"{Stats.Count - Selected}       ");
-        CWriter.Colored(ConsoleColor.White, $"Time:  ", RightTextStart, TopLengthStart);
-        CWriter.Colored(ConsoleColor.DarkGreen, $"{Selection.time.TotalSeconds:00.000}   ");
-        CWriter.Colored(ConsoleColor.White, $"Moves: ", RightTextStart, TopLengthStart + 1);
-        CWriter.Colored(ConsoleColor.DarkRed, $"{Selection.numMoves}   ");
-        CWriter.Colored(ConsoleColor.White, $"Date:  ", RightTextStart, TopLengthStart + 2);
-        CWriter.Colored(ConsoleColor.DarkYellow, $"{Selection.date:g}     ");
-        CWriter.Colored(ConsoleColor.White, $"Solve (start on {Selection.scramble[(Selection.startY * 3) + Selection.startX]}):", RightTextStart, TopLengthStart + 3);
+        Term.Form(
+            Term.reset, Term.move, RightTextStart, TopLengthStart - 1, Term.brightWhite, "ID:    ",
+            Term.magenta, $"{Stats.Count - Selected}       ",
+            Term.move, RightTextStart, TopLengthStart, Term.brightWhite, "Time:  ",
+            Term.green, $"{Selection.time.TotalSeconds:00.000}   ",
+            Term.move, RightTextStart, TopLengthStart + 1, Term.brightWhite, "Moves: ",
+            Term.red, $"{Selection.numMoves}   ",
+            Term.move, RightTextStart, TopLengthStart + 2, Term.brightWhite, "Date:  ",
+            Term.yellow, $"{Selection.date:g}     ",
+            Term.move, RightTextStart, TopLengthStart + 3, Term.brightWhite, $"Solve (start on {Selection.scramble[(Selection.startY * 3) + Selection.startX]}):"
+        );
         MoveReplay.DrawAll();
-        CWriter.Colored(ConsoleColor.White, $"Scramble:", RightTextStart, TopLengthStart + 7);
+        Term.Form(Term.move, RightTextStart, TopLengthStart + 7, Term.brightWhite, "Scramble:");
         Blocks.DrawAll();
     }
 
@@ -214,39 +215,39 @@ class StatViewer
 
     public void DrawElements()
     {
-        Console.ResetColor();
-        Console.ForegroundColor = ConsoleColor.DarkGray;
+        var sb = Term.PrepareSB(Term.reset, Term.brightBlack);
         for (int i = Position; (i < (Position + TextHeight)) && (i < Stats.Count) && (i >= 0); i++)
         {
             if (i == Selected)
-                Console.ForegroundColor = ConsoleColor.Green;
-            Console.SetCursorPosition(LeftTextStart, TopLengthStart + (i - Position));
-            Console.Write($"{Stats[^(i + 1)].date:d}".PadRight(12));
-            Console.Write($"{Stats[^(i + 1)].time.TotalSeconds:00.000}".PadRight(11));
-            Console.Write($"{Stats[^(i + 1)].numMoves}".PadRight(5));
-            Console.ForegroundColor = ConsoleColor.DarkGray;
+                sb.Append(Term.brightGreen);
+            sb.Append(string.Format(Term.move, LeftTextStart, TopLengthStart + (i - Position)))
+                .Append($"{Stats[^(i + 1)].date:d}".PadRight(12))
+                .Append($"{Stats[^(i + 1)].time.TotalSeconds:00.000}".PadRight(11))
+                .Append($"{Stats[^(i + 1)].numMoves}".PadRight(5))
+                .Append(Term.brightBlack);
         }
+
+        Console.Write(sb.ToString());
         DrawLine();
     }
 
     private void DrawFrame()
     {
-        Console.ResetColor();
-        Console.ForegroundColor = ConsoleColor.White;
-        Console.SetCursorPosition(OffsetX, OffsetY);
+        var sb = Term.PrepareSB(Term.reset, Term.move, OffsetX, OffsetY, Term.brightWhite);
         for (int i = 0; i < height; i++)
-        {
-            Console.Write("█");
-            Console.CursorLeft += width - 2;
-            Console.Write("█");
-            Console.SetCursorPosition(OffsetX, OffsetY + i + 1);
-        }
-        Console.SetCursorPosition(OffsetX + 1, OffsetY);
-        Console.Write(new StringBuilder().Append('▀', width - 2));
-        Console.SetCursorPosition(OffsetX + 1, OffsetY + height - 1);
-        Console.Write(new StringBuilder().Append('▄', width - 2));
-        Console.SetCursorPosition(LeftTextStart, TopLengthStart - 1);
-        Console.Write("Date        Time       Moves");
+            sb.Append('█')
+                .Append(string.Format(Term.right, width - 2))
+                .Append('█')
+                .Append(string.Format(Term.move, OffsetX, OffsetY + i + 1));
+
+        sb.Append(string.Format(Term.move, OffsetX + 1, OffsetY))
+            .Append('▀', width - 2)
+            .Append(string.Format(Term.move, OffsetX + 1, OffsetY + height - 1))
+            .Append('▄', width - 2)
+            .Append(string.Format(Term.move, LeftTextStart, TopLengthStart - 1))
+            .Append("Date        Time       Moves");
+
+        Console.Write(sb.ToString());
         DrawLine();
     }
 

@@ -1,4 +1,5 @@
-﻿using Loopover.Holders;
+﻿using Bny.Console;
+using Loopover.Holders;
 using Loopover.Usefuls;
 using System;
 using System.Linq;
@@ -63,24 +64,22 @@ class MoveReplay
         int lcount = StatViewer.TextHeight - 14;
         int x = StatViewer.RightTextStart;
         int y = StatViewer.TopLengthStart + 4;
-        Console.ResetColor();
-        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Term.ResetColor();
+        var sb = Term.PrepareSB(Term.brightBlack);
         for (int i = 0; i < lcount; i++)
         {
-            Console.SetCursorPosition(x, y + i);
+            sb.Append(string.Format(Term.move, x, y + i));
             for (int j = 0; j < count; j++)
             {
                 int pos = (i * count) + j;
                 if (pos >= Moves.Length)
-                    Console.Write("  ");
+                    sb.Append("  ");
                 else if (pos == Position)
-                {
-                    CWriter.Colored(ConsoleColor.DarkCyan, Convert.ToString(Moves[pos].Direction, Moves[pos].Rotate));
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
-                }
-                else Console.Write(Convert.ToString(Moves[pos].Direction, Moves[pos].Rotate));
+                    sb.Append(Term.cyan).Append(Convert.ToString(Moves[pos].Direction, Moves[pos].Rotate)).Append(Term.brightBlack);
+                else sb.Append(Convert.ToString(Moves[pos].Direction, Moves[pos].Rotate));
             }
         }
+        Console.Write(sb.ToString());
     }
 
     private (Direction, bool) MoveParse(string s) => s switch

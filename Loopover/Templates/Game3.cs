@@ -1,4 +1,5 @@
-﻿using Loopover.Holders;
+﻿using Bny.Console;
+using Loopover.Holders;
 using Loopover.UIs;
 using System;
 
@@ -16,7 +17,8 @@ class Game3
     private readonly Function Scramble;
     private bool AllowSave { get; set; } = true;
     private readonly string help = "[Enter]Scramble [Backspace]Pause/Resume [R]Reload [S]Save [Esc]Exit [Tab]Stats [Arrows]Move [Ctrl]Rotate";
-        
+    private (int x, int y) lastSize;
+
     public Game3(Stats stats, Blocks blocks)
     {
         this.stats = stats;
@@ -28,6 +30,7 @@ class Game3
             Status.WriteHelp(help);
         };
         Scramble = blocks.ScrambleDraw;
+        lastSize = Term.GetWindowSize();
     }
 
     public Game3(Stats stats, Blocks blocks, Function reset, Function scramble, bool timeStart, bool allowSave, string help)
@@ -55,6 +58,12 @@ class Game3
         {
             if (Console.KeyAvailable)
                 rm = NewPress();
+            /*var newSize = Term.GetWindowSize();
+            if (lastSize != newSize)
+            {
+                lastSize = newSize;
+                Reset();
+            }*/
             statb.UpdateTime();
         }
         return rm;
@@ -117,7 +126,12 @@ class Game3
             {
                 stats.Ingame = false;
                 stats.Move(direction, rotate);
-                stats.SaveTime();
+                if (blocks.Width == 3 && blocks.Height == 3)
+                    stats.SaveTime();
+                else
+                {
+
+                }
                 statb.UpdateMoves();
                 statb.UpdateHistory();
                 Status.Write("Game solved");

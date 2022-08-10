@@ -1,4 +1,5 @@
-﻿using Loopover.Holders;
+﻿using Bny.Console;
+using Loopover.Holders;
 using Loopover.Templates;
 using Loopover.UIs;
 using System;
@@ -9,10 +10,13 @@ class Program
 {
     public static Random random = new();
     private static readonly Stats stats = new();
-    private static readonly Blocks blocks = new(3, 3);
+    private static readonly Blocks blocks = new(3, 3); // 64 38
+    private static (int x, int y) curPos;
 
     static void Main(string[] args)
     {
+        curPos = Term.GetPosition();
+        Console.Write(Term.altBufferOn);
         if ((Console.WindowHeight < 21) || (Console.WindowWidth < 80))
         {
             Console.WriteLine("Too small console window! Window must be at least 80 characters wide and 21 characters high");
@@ -47,9 +51,7 @@ class Program
 
     static void Exit()
     {
-        Console.ResetColor();
-        Console.Clear();
-        Console.CursorVisible = true;
+        Term.Form(Term.softReset, Term.altBufferOff, Term.move, curPos.x, curPos.y);
         stats.SaveToJson();
     }
 }

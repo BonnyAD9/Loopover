@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text;
+using Bny.Console;
 using Loopover.Holders;
 
 namespace Loopover.UIs;
@@ -63,7 +65,11 @@ class Blocks
         DrawAll();
     }
 
-    public void Center() => Reoffset((Console.WindowWidth / 2) - (CharWidth / 2), (Console.WindowHeight / 2) - (CharHeight / 2));
+    public void Center()
+    {
+        (int width, int height) = Term.GetWindowSize();
+        Reoffset((width / 2) - (CharWidth / 2), (height / 2) - (CharHeight / 2));
+    }
 
     public void CenterDraw()
     {
@@ -73,8 +79,8 @@ class Blocks
 
     private static void Clear()
     {
-        Console.ResetColor();
-        Console.Clear();
+        Term.ResetColor();
+        Term.Erase();
     }
 
     public void ClearDraw()
@@ -86,13 +92,13 @@ class Blocks
     public void Setup()
     {
         ClearDraw();
-        Console.CursorVisible = false;
+        Term.IsCursorVisible = false;
     }
 
     public void SetupCenter()
     {
         CenterDraw();
-        Console.CursorVisible = false;
+        Term.IsCursorVisible = false;
     }
 
     public bool CheckWin()
@@ -108,7 +114,8 @@ class Blocks
     private void Scramble()
     {
         (int, int) save = (SelX, SelY);
-        for (int i = 0; i < 20; i++)
+        int lim = Width * Height * Math.Max(Width, Height) < 20 ? 20 : Width * Height * Math.Max(Width, Height);
+        for (int i = 0; i < lim; i++)
         {
             (SelX, SelY) = (Program.random.Next(Width), Program.random.Next(Height));
             RotateSel((Direction)Enum.GetValues(typeof(Direction)).GetValue(Program.random.Next(4)));
@@ -134,15 +141,16 @@ class Blocks
     private void DrawAt(int x, int y, bool selected)
     {
         int num = this[x, y];
-        Console.SetCursorPosition(OffsetX + (x * TileWidth), OffsetY + (y * TileHeight));
-        Console.BackgroundColor = GetColor(num);
-        Console.ForegroundColor = ConsoleColor.White;
+
+        var sb = Term.PrepareSB(
+            Term.move, OffsetX + (x * TileWidth), OffsetY + (y * TileHeight),
+            GetColor(num), Term.brightWhite
+        );
+
         foreach (string s in selected ? GetSel(num) : GetUnsel(num))
-        {
-            Console.Write(s);
-            Console.CursorTop++;
-            Console.CursorLeft -= TileWidth;
-        }
+            sb.Append(s).Append(Term.down1).Append(Term.Prepare(Term.left, TileWidth));
+
+        Console.Write(sb.Append(Term.defaultBg).ToString());
     }
 
     private void MoveSel(int x, int y)
@@ -237,19 +245,14 @@ class Blocks
         OffsetY = y;
     }
 
-    public static ConsoleColor GetColor(int num) => num switch
+    public string GetColor(int num)
     {
-        1 => ConsoleColor.DarkRed,
-        2 => ConsoleColor.DarkMagenta,
-        3 => ConsoleColor.DarkBlue,
-        4 => ConsoleColor.Red,
-        5 => ConsoleColor.DarkGray,
-        6 => ConsoleColor.Blue,
-        7 => ConsoleColor.DarkYellow,
-        8 => ConsoleColor.Green,
-        9 => ConsoleColor.DarkCyan,
-        _ => ConsoleColor.Black
-    };
+        const float scaleDown = 0.85f;
+        num--;
+        int x = (num % Width) * 255 / (Width - 1);
+        int y = (num / Width) * 255 / (Height - 1);
+        return string.Format(Term.bg, (byte)((255 - x) * scaleDown), (byte)(y * scaleDown), (byte)(x * scaleDown));
+    }
 
     public static string[] BigSel(int num)
     {
@@ -261,23 +264,53 @@ class Blocks
         return Numbers.Unselected(num);
     }
 
-    public static string[] SmallSel(int num)
+    public static string[] SmallSel(int num) => num switch
     {
-        return new string[] {
-            "█▀▀▀▀▀█",
-            $"█  {num}  █",
-            "█▄▄▄▄▄█"
-        };
-    }
+        < 10 => new string[] {
+                "█▀▀▀▀▀█",
+                $"█  {num}  █",
+                "█▄▄▄▄▄█"
+            },
+        < 100 => new string[] {
+                "█▀▀▀▀▀█",
+                $"█ {num}  █",
+                "█▄▄▄▄▄█"
+            },
+        < 1000 => new string[] {
+                "█▀▀▀▀▀█",
+                $"█ {num} █",
+                "█▄▄▄▄▄█"
+            },
+        _ => new string[] {
+                "█▀▀▀▀▀█",
+                $"█ {num}█",
+                "█▄▄▄▄▄█"
+            },
+    };
 
-    public static string[] SmallUnsel(int num)
+    public static string[] SmallUnsel(int num) => num switch
     {
-        return new string[] {
+        < 10 => new string[] {
             "       ",
             $"   {num}   ",
             "       "
-        };
-    }
+        },
+        < 100 => new string[] {
+            "       ",
+            $"  {num}   ",
+            "       "
+        },
+        < 1000 => new string[] {
+            "       ",
+            $"  {num}  ",
+            "       "
+        },
+        _ => new string[] {
+            "       ",
+            $"  {num} ",
+            "       "
+        },
+    };
 
     public int[] Copy()
     {
