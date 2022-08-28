@@ -10,11 +10,23 @@ class Program
 {
     public static Random random = new();
     private static readonly Stats stats = new();
-    private static readonly Blocks blocks = new(3, 3); // 64 38
+    private static Blocks blocks;
     private static (int x, int y) curPos;
 
     static void Main(string[] args)
     {
+        if (args.Length == 0)
+            blocks = new(3, 3);
+        else
+        {
+            var strs = args[0].Split('x');
+            if (strs.Length != 2 || !ushort.TryParse(strs[0], out ushort x) || !ushort.TryParse(strs[1], out ushort y))
+            {
+                Term.FormLine(Term.brightRed, "Invalid argument", Term.reset);
+                return;
+            }
+            blocks = new(x, y, x * y > 9);
+        }
         curPos = Term.GetPosition();
         Console.Write(Term.altBufferOn);
         if ((Console.WindowHeight < 21) || (Console.WindowWidth < 80))
