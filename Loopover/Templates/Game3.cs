@@ -18,6 +18,7 @@ class Game3
     private bool AllowSave { get; set; } = true;
     private readonly string help = "[Enter]Scramble [Backspace]Pause/Resume [R]Reload [S]Save [Esc]Exit [Tab]Stats [Arrows]Move [Ctrl]Rotate";
     private (int x, int y) lastSize;
+    public bool powerEfficient { get; set; } = false;
 
     public Game3(Stats stats, Blocks blocks)
     {
@@ -27,10 +28,11 @@ class Game3
         Reset = () =>
         {
             blocks.SetupCenter();
+            Status.GetSize();
             Status.WriteHelp(help);
         };
         Scramble = blocks.ScrambleDraw;
-        lastSize = Term.GetWindowSize();
+        lastSize = Loopover.Usefuls.Convert.GetWindowSize();
     }
 
     public Game3(Stats stats, Blocks blocks, Function reset, Function scramble, bool timeStart, bool allowSave, string help)
@@ -41,6 +43,7 @@ class Game3
         Reset = () =>
         {
             reset();
+            Status.GetSize();
             Status.WriteHelp(help);
         };
         Scramble = scramble;
@@ -56,7 +59,7 @@ class Game3
         ResultMessage rm = ResultMessage.None;
         while (rm == ResultMessage.None)
         {
-            if (Console.KeyAvailable)
+            if (powerEfficient || Console.KeyAvailable || !stats.Ingame)
                 rm = NewPress();
             /*var newSize = Term.GetWindowSize();
             if (lastSize != newSize)
@@ -104,6 +107,10 @@ class Game3
                         Status.Write("Saved to file");
                     else
                         Status.Write("Save failed");
+                    break;
+                case ConsoleKey.P:
+                    powerEfficient = !powerEfficient;
+                    Status.Write(powerEfficient ? "Enable power efficient" : "Disable PowerEfficient");
                     break;
                 case ConsoleKey.Escape:
                     return ResultMessage.Exit;

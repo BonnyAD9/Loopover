@@ -102,7 +102,7 @@ class StatViewer
         DrawContent();
     }
 
-    private void Center() => (OffsetX, OffsetY) = Centered(Term.GetWindowSize());
+    private void Center() => (OffsetX, OffsetY) = Centered(Loopover.Usefuls.Convert.GetWindowSize());
 
     public ResultMessage PlayScramble()
     {

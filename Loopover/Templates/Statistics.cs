@@ -82,6 +82,7 @@ class Statistics
                     break;
                 case ConsoleKey.R:
                     StatViewer.CenterSetup();
+                    Status.GetSize();
                     Status.WriteHelp(help);
                     Status.Write("Reloaded");
                     break;

@@ -1,5 +1,6 @@
 ﻿using Loopover.Holders;
 using System;
+using Bny.Console;
 
 namespace Loopover.Usefuls;
 
@@ -38,4 +39,40 @@ static class Convert
         Direction.Down => Direction.Up,
         _ => direction
     };
+
+    public static (int x, int y) GetPosition()
+    {
+        Console.Write(Term.posReq);
+
+        while (!Console.KeyAvailable)
+            ;//throw new InvalidOperationException();
+
+        var str = Term.ReadRaw(true).AsSpan();
+        int i = str.IndexOf('\x1b');
+
+        if (i == -1)
+            throw new InvalidOperationException();
+
+        str = str[i..];
+        i = str.IndexOf('R');
+
+        if (i == -1)
+            throw new InvalidOperationException();
+
+        str = str[1] == '[' ? str[2..i] : str[1..i];
+        i = str.IndexOf(';');
+
+        if (i == -1)
+            throw new InvalidOperationException();
+        
+        return (int.Parse(str[(i + 1)..]), int.Parse(str[..i]));
+    }
+
+    public static (int x, int y) GetWindowSize()
+    {
+        Term.Form(Term.save, Term.move, Term.maxSize, Term.maxSize);
+        var ret = GetPosition();
+        Console.Write(Term.restore);
+        return ret;
+    }
 }

@@ -67,7 +67,7 @@ class Blocks
 
     public void Center()
     {
-        (int width, int height) = Term.GetWindowSize();
+        (int width, int height) = Loopover.Usefuls.Convert.GetWindowSize();
         Reoffset((width / 2) - (CharWidth / 2), (height / 2) - (CharHeight / 2));
     }
 

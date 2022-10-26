@@ -15,19 +15,31 @@ class Program
 
     static void Main(string[] args)
     {
-        if (args.Length == 0)
-            blocks = new(3, 3);
-        else
+        int width = 3;
+        int height = 3;
+        bool pe = false;
+        foreach (var arg in args)
         {
-            var strs = args[0].Split('x');
-            if (strs.Length != 2 || !ushort.TryParse(strs[0], out ushort x) || !ushort.TryParse(strs[1], out ushort y))
+            switch (arg)
             {
-                Term.FormLine(Term.brightRed, "Invalid argument", Term.reset);
-                return;
+                case "-pe" or "--power-efficient":
+                    pe = true;
+                    break;
+                default:
+                {
+                    var strs = args[0].Split('x');
+                    if (strs.Length != 2 || !ushort.TryParse(strs[0], out ushort x) || !ushort.TryParse(strs[1], out ushort y))
+                    {
+                        Term.FormLine(Term.brightRed, "Invalid argument", Term.reset);
+                        return;
+                    }
+                }
+                    break;
             }
-            blocks = new(x, y, x * y > 9);
         }
-        curPos = Term.GetPosition();
+
+        blocks = new(width, height, width * height > 9);
+        curPos = Loopover.Usefuls.Convert.GetPosition();
         Console.Write(Term.altBufferOn);
         if ((Console.WindowHeight < 21) || (Console.WindowWidth < 80))
         {
@@ -37,7 +49,9 @@ class Program
         Console.TreatControlCAsInput = true;
         stats.LoadFromJson();
         ResultMessage msg = ResultMessage.Next;
+        Status.GetSize();
         Game3 g3 = new(stats, blocks);
+        g3.powerEfficient = pe;
         Statistics statistics = new(stats);
         Func<ResultMessage>[] inLoop = new Func<ResultMessage>[] { g3.Play, statistics.Play };
         int pos = 0;
