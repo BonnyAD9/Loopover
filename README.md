@@ -24,6 +24,7 @@ Stats page:
 - [S] Save statistics
 - [Tab] Show statistics
 - [Esc] Save and exit
+- [P] Toggle power efficient mode
 ### In statistics
 - [Up|Down Arrow] Next|Previus time
 - [Pg Up|Down] Move by one page at a time
@@ -38,6 +39,10 @@ Stats page:
 ### While trying scramble
 Same as in game
 - [Esc|Tab] Back
+
+### Command line arguments
+- [width]x[height] - specify board size
+- `-pe` | `--power-efficien` launch in power efficient mode
 
 ## Color scheme
 Recommended color scheme for Windows Terminal:
